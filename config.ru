@@ -1,8 +1,8 @@
-require 'erubis'
+require 'erb'
 
 class Verb
-  def call(env) 
-    base_path = File.join(Dir.pwd, env["REQUEST_URI"].sub(/\/$/, ""))
+  def call(env)
+    base_path = File.join(Dir.pwd, env["PATH_INFO"].sub(/\/$/, ""))
     exact_path = base_path + ".rhtml"
     index_path = File.join(base_path, "index.rhtml")
     
@@ -16,10 +16,17 @@ class Verb
   end
   
   def render(path, env)
-    erb = Erubis::Eruby.new(File.open(path) { |f| f.read })
-    context = {:env => env, :request => Rack::Request.new(env)}
+    erb = ERB.new(File.open(path) { |f| f.read })
     
-    [200, {"Content-Type" => "text/html"}, erb.result(context)]
+    request = Rack::Request.new(env)
+    response = Rack::Response.new
+    
+    response.status = 200
+    response["Content-Type"] = "text/html"
+    
+    response.write(erb.result(binding))
+    
+    response.finish
   end
 end
 
