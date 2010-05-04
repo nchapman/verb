@@ -1,6 +1,10 @@
 require 'erb'
 
 class Verb
+  def initialize(app)
+    @app = app
+  end
+  
   def call(env)
     base_path = File.join(Dir.pwd, env["PATH_INFO"].sub(/\/$/, ""))
     exact_path = base_path + ".rhtml"
@@ -11,7 +15,7 @@ class Verb
     elsif File.exists?(index_path)
       render(index_path, env)
     else
-      [404, {"Content-Type" => "text/plain"}, "404 NOT FOUND"]
+      @app.call(env)
     end
   end
   
@@ -30,4 +34,6 @@ class Verb
   end
 end
 
-run Verb.new
+use Verb
+
+run Rack::File.new("public")
