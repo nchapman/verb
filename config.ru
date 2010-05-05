@@ -20,17 +20,31 @@ class Verb
   end
 
   def render(path, env)
-    erb = ERB.new(File.open(path) { |f| f.read })
+    erb = ERB.new(File.open(path) { |f| f.read }, nil, nil, "@erb_output")
+    
+    @erb_output = "" 
+    @render_path = path
+    
+    @request = Rack::Request.new(env)
+    
+    @response = Rack::Response.new
+    @response["Content-Type"] = "text/html"
 
-    request = Rack::Request.new(env)
-    response = Rack::Response.new
+    erb.result(binding)
+    
+    @response.write(@erb_output)
 
-    response.status = 200
-    response["Content-Type"] = "text/html"
-
-    response.write(erb.result(binding))
-
-    response.finish
+    @response.finish
+  end
+  
+  def layout(name = "layout")
+    layout_path = File.join(File.dirname(@render_path), name + ".rhtml")
+    
+    if File.exists?(layout_path)
+      ERB.new(File.open(layout_path) { |f| f.read }, nil, nil, "@erb_output").result(binding)
+    else
+      yield
+    end
   end
 end
 
