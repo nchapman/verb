@@ -20,18 +20,16 @@ class Verb
   end
 
   def render(path, env)
-    erb = ERB.new(File.open(path) { |f| f.read }, nil, nil, "@erb_output")
-    
-    @erb_output = "" 
+    @erb_output = ""
     @render_path = path
     
     @request = Rack::Request.new(env)
-    
     @response = Rack::Response.new
-    @response["Content-Type"] = "text/html"
-
-    erb.result(binding)
     
+    @response["Content-Type"] = "text/html"
+    
+    ERB.new(File.open(path) { |f| f.read }, nil, nil, "@erb_output").result(binding)
+
     @response.write(@erb_output)
 
     @response.finish
