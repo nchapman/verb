@@ -1,2 +1,5 @@
 .DS_Store
 *.rhtml
+*.ru
+public
+tmp
